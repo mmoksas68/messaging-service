@@ -1,0 +1,93 @@
+package com.armut.messagingservice.controller;
+
+import com.armut.messagingservice.entity.Errors;
+import com.armut.messagingservice.entity.Message;
+import com.armut.messagingservice.entity.User;
+import com.armut.messagingservice.exception.NoMessageFoundException;
+import com.armut.messagingservice.exception.NoUserFoundException;
+import com.armut.messagingservice.request.MessageRequest;
+import com.armut.messagingservice.request.MessageUpdateRequest;
+import com.armut.messagingservice.security.CustomUserDetailsService;
+import com.armut.messagingservice.service.ErrorsService;
+import com.armut.messagingservice.service.MessageService;
+import com.armut.messagingservice.service.OperatorService;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/messages")
+public class MessageController {
+    @Autowired
+    MessageService messageService;
+
+    @Autowired
+    private OperatorService operatorService;
+
+    @Autowired
+    CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
+    ErrorsService errorsService;
+
+    @ApiOperation("Send message to a user from the current user")
+    @PostMapping
+    public ResponseEntity<?> sendMessage(@RequestBody MessageRequest messageRequest) throws NoUserFoundException {
+        User currentUser = customUserDetailsService.getCurrentUser();
+        try {
+            Message addedMessage = operatorService.sendMessage(messageRequest.toMessage(currentUser.getId(), currentUser.getUsername()));
+            return new ResponseEntity<>(addedMessage, HttpStatus.OK);
+        } catch (NoUserFoundException e) {
+            errorsService.add(Errors.newError(messageRequest.getReceiverId(), null, e.getMessage()));
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
+        }
+
+    }
+
+    @ApiOperation("Get all messages of the current user")
+    @GetMapping("/current/")
+    public ResponseEntity<List<Message>> getAllMessagesOfCurrentUser() throws NoUserFoundException {
+        User currentUser = customUserDetailsService.getCurrentUser();
+        List<Message> messages = messageService.getAllById(currentUser.getId());
+        return new ResponseEntity<>(messages, HttpStatus.OK);
+    }
+
+    @ApiOperation("Get the dialog of the current user by given user id")
+    @GetMapping("/current/{userId}")
+    public ResponseEntity<List<Message>> getDialogOfCurrentUserByUserId(@PathVariable Long userId) throws NoUserFoundException {
+        User currentUser = customUserDetailsService.getCurrentUser();
+        List<Message> messages = messageService.getDialog(currentUser.getId(), userId);
+        return new ResponseEntity<>(messages, HttpStatus.OK);
+    }
+
+    @ApiOperation("Update message by given id")
+    @PutMapping
+    public ResponseEntity<Message> updateMessageById(@RequestBody MessageUpdateRequest request) {
+        Message updatedMessage = messageService.update(request.toMessage());
+        return new ResponseEntity<>(updatedMessage, HttpStatus.OK);
+    }
+
+    @ApiOperation("Delete message by given id")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMessageById(@PathVariable Long id) {
+        try {
+            Message messageToDelete = messageService.get(id);
+            messageService.delete(messageToDelete);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NoMessageFoundException e) {
+            errorsService.add(Errors.newError(id, null, e.getMessage()));
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
+        }
+    }
+}
