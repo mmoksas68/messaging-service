@@ -41,9 +41,13 @@ public class UserController {
 
     @ApiOperation("Add a new user")
     @PostMapping
-    public ResponseEntity<User> addUser(@RequestBody UserRequest request) {
+    public ResponseEntity<?> addUser(@RequestBody UserRequest request) {
         User addedUser = operatorService.addUser(request.toUser());
-        return new ResponseEntity<>(addedUser, HttpStatus.OK);
+        if (addedUser == null) {
+            return new ResponseEntity<>("A user with given username already exits.", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(addedUser, HttpStatus.OK);
+        }
     }
 
     @ApiOperation("Get current user")
@@ -90,7 +94,7 @@ public class UserController {
         try {
             User userToDelete = userService.get(id);
             operatorService.deleteUser(userToDelete);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>("User deleted.", HttpStatus.OK);
         } catch (NoUserFoundException e) {
             errorsService.add(Errors.newError(id, null, e.getMessage()));
             return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
