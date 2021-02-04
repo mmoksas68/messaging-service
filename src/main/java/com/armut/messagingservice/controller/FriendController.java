@@ -74,6 +74,9 @@ public class FriendController {
         User currentUser = customUserDetailsService.getCurrentUser();
         try {
             FriendRequest friendRequest = operatorService.sendFriendRequest(request.toFriendRequest(currentUser.getId()));
+            if (friendRequest == null) {
+                return new ResponseEntity<>("Couldn't send friend request", HttpStatus.OK);
+            }
             return new ResponseEntity<>(friendRequest, HttpStatus.OK);
         } catch (NoUserFoundException e) {
             errorsService.add(Errors.newError(request.getReceiverId(), null, e.getMessage()));
@@ -88,15 +91,15 @@ public class FriendController {
             if (status.equals(FriendRequest.FriendRequestStatus.APPROVED)) {
                 User currentUser = customUserDetailsService.getCurrentUser();
                 if (operatorService.addFriend(request.toFriendRequest(currentUser.getId(), status)))
-                    return new ResponseEntity<>(HttpStatus.OK);
+                    return new ResponseEntity<>("Your reply is received.", HttpStatus.OK);
                 else
-                    return null;
+                    return new ResponseEntity<>("Invalid reply.", HttpStatus.OK);
             } else if (status.equals(FriendRequest.FriendRequestStatus.REJECTED)) {
                 User currentUser = customUserDetailsService.getCurrentUser();
                 if (operatorService.rejectFriendRequest(request.toFriendRequest(currentUser.getId(), status)))
-                    return new ResponseEntity<>(HttpStatus.OK);
+                    return new ResponseEntity<>("Your reply is received.", HttpStatus.OK);
                 else
-                    return null;
+                    return new ResponseEntity<>("Invalid reply.", HttpStatus.OK);
             }
             return new ResponseEntity<>(HttpStatus.OK);
         } catch(NoUserFoundException e) {

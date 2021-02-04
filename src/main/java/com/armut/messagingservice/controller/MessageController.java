@@ -47,6 +47,9 @@ public class MessageController {
         User currentUser = customUserDetailsService.getCurrentUser();
         try {
             Message addedMessage = operatorService.sendMessage(messageRequest.toMessage(currentUser.getId(), currentUser.getUsername()));
+            if (addedMessage == null) {
+                return new ResponseEntity<>("Couldn't send the message", HttpStatus.OK);
+            }
             return new ResponseEntity<>(addedMessage, HttpStatus.OK);
         } catch (NoUserFoundException e) {
             errorsService.add(Errors.newError(messageRequest.getReceiverId(), null, e.getMessage()));
