@@ -8,7 +8,9 @@ This is a messaging microservice created by using Spring Boot, MySQL, Docker.
 ### How to Start the Application
 
 - Clone the repository. 
-- Type "docker-compose up" to the commend line.
+- Type "docker-compose up" to the commend line. This could take a while.
+- After spring boot initialized you can go to **http://localhost:8080/swagger-ui.html#/**
+- If there is a port error, you can change the used ports from "docker-compose.yml" file.
 
 # Endpoints are documented using Swagger-UI
 
