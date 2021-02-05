@@ -45,6 +45,7 @@ public class OperatorService {
 
     public FriendRequest sendFriendRequest(FriendRequest friendRequest) throws NoUserFoundException {
         User user = userService.get(friendRequest.getSenderId());
+        User user2 = userService.get(friendRequest.getReceiverId());
         if (blockedUserService.isBlocked(friendRequest.getReceiverId(), friendRequest.getSenderId())) {
             actionService.add(Action.newAction(user, Action.ActionType.SEND_FRIEND_REQUEST, Action.ActionStatus.FAILED, "Sender is blocked by the receiver."));
             return null;

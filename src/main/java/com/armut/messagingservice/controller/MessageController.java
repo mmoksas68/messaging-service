@@ -75,9 +75,20 @@ public class MessageController {
 
     @ApiOperation("Update message by given id")
     @PutMapping
-    public ResponseEntity<Message> updateMessageById(@RequestBody MessageUpdateRequest request) {
-        Message updatedMessage = messageService.update(request.toMessage());
-        return new ResponseEntity<>(updatedMessage, HttpStatus.OK);
+    public ResponseEntity<?> updateMessageById(@RequestBody MessageUpdateRequest request) {
+        try {
+            User user = customUserDetailsService.getCurrentUser();
+            Message messageToUpdate = messageService.get(request.getId());
+            if (!messageToUpdate.getSenderId().equals(user.getId())) {
+                errorsService.add(Errors.newError(request.getId(), null, "You don't have permission to update this message."));
+                return new ResponseEntity<>("You don't have permission to update this message.", HttpStatus.OK);
+            }
+            Message updatedMessage = messageService.update(request.toMessage());
+            return new ResponseEntity<>(updatedMessage, HttpStatus.OK);
+        } catch (Exception e) {
+            errorsService.add(Errors.newError(request.getId(), null, e.getMessage()));
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
+        }
     }
 
     @ApiOperation("Delete message by given id")
