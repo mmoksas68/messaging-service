@@ -52,9 +52,16 @@ public class UserController {
 
     @ApiOperation("Get current user")
     @GetMapping
-    public ResponseEntity<User> getCurrent() throws NoUserFoundException {
-        User user = customUserDetailsService.getCurrentUser();
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    public ResponseEntity<?> getCurrent() {
+        User user = null;
+        try {
+            user = customUserDetailsService.getCurrentUser();
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        } catch (Exception e) {
+            errorsService.add(Errors.newError(null, null, "You are not logged in."));
+            return new ResponseEntity<>("You are not logged in.", HttpStatus.OK);
+        }
+
     }
 
     @ApiOperation("Get all users")
