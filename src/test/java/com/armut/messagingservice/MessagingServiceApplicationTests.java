@@ -204,9 +204,9 @@ class MessagingServiceApplicationTests {
 		Assert.assertEquals(updatedMessage.getBody(), messageToUpdate.getBody());
 
 			// test message delete
-		Assert.assertEquals(1,messageService.getAllById(addedUser2.getId()).size());
+		Assert.assertEquals(2,messageService.getAllById(addedUser2.getId()).size());
 		messageService.delete(updatedMessage);
-		Assert.assertEquals(0,messageService.getAllById(addedUser2.getId()).size());
+		Assert.assertEquals(1,messageService.getAllById(addedUser2.getId()).size());
 
 		// test blocking a friend
 		operatorService.blockUser(addedUser1.getId(), addedUser2.getId());

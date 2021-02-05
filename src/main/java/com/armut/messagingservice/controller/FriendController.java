@@ -75,12 +75,13 @@ public class FriendController {
         try {
             FriendRequest friendRequest = operatorService.sendFriendRequest(request.toFriendRequest(currentUser.getId()));
             if (friendRequest == null) {
+                errorsService.add(Errors.newError(currentUser.getId(), currentUser.getUsername(), "Sending invalid friend request."));
                 return new ResponseEntity<>("Couldn't send friend request", HttpStatus.OK);
             }
             return new ResponseEntity<>(friendRequest, HttpStatus.OK);
         } catch (NoUserFoundException e) {
-            errorsService.add(Errors.newError(request.getReceiverId(), null, e.getMessage()));
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
+            errorsService.add(Errors.newError(currentUser.getId(), currentUser.getUsername(), "Sending invalid friend request."));
+            return new ResponseEntity<>("Couldn't send friend request", HttpStatus.OK);
         }
     }
 
