@@ -39,19 +39,23 @@ public class AuthenticationController {
     @ApiOperation("Login to the system with user credentials")
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) throws NoUserFoundException {
-        User user = userService.getByUsername(loginRequest.getUsername());
+        SecurityContextHolder.clearContext();
+        User user = null;
         try {
+            user = userService.getByUsername(loginRequest.getUsername());
             Authentication authentication =
                     authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             actionService.add(Action.newAction(user, Action.ActionType.LOGIN, Action.ActionStatus.SUCCESSFUL, null));
+            return new ResponseEntity<>(SecurityContextHolder.getContext().getAuthentication().getPrincipal(), HttpStatus.OK);
         } catch (Exception e) {
             if (user != null) {
                 actionService.add(Action.newAction(user, Action.ActionType.LOGIN, Action.ActionStatus.FAILED, "Wrong password entered."));
+                return new ResponseEntity<>("Wrong password entered.", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Wrong username entered.", HttpStatus.OK);
             }
         }
-
-        return new ResponseEntity<>(SecurityContextHolder.getContext().getAuthentication().getPrincipal(), HttpStatus.OK);
     }
 
     @ApiOperation("Logout from the system with user credentials")

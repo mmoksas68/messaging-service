@@ -55,7 +55,6 @@ public class MessageController {
             errorsService.add(Errors.newError(messageRequest.getReceiverId(), null, e.getMessage()));
             return new ResponseEntity<>(e.getMessage(), HttpStatus.OK);
         }
-
     }
 
     @ApiOperation("Get all messages of the current user")
